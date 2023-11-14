@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en" class="no-js">
+
+<head>
+	<meta charset="UTF-8" />
+	<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Data Analyse</title>
+	<meta name="description" content="Sidebar Transitions: Transition effects for off-canvas views" />
+	<meta name="keywords" content="transition, off-canvas, navigation, effect, 3d, css3, smooth" />
+	<meta name="author" content="Codrops" />
+	<link rel="shortcut icon" href="../favicon.ico">
+	<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/normalize.css') }}" />
+	<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/demo.css') }}" />
+	<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/icons.css') }}" />
+	<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/component.css') }}" />
+</head>
+
+<body>
+	<div id="st-container" class="st-container">
+		<nav class="st-menu st-effect-9" id="menu-9">
+			<h2 class="icon icon-truck">成運汽車</h2>
+			<ul>
+				<li><a class="icon icon-location" href="/shinbus">欣欣客運</a></li>
+				<li><a class="icon icon-study" href="/taipeibus">台北客運</a></li>
+				<li><a class="icon icon-study" href="/tapitalbus">首都客運</a></li>
+				<li><a class="icon icon-study" href="/newtaipeikkbus">新北國光</a></li>
+				<li><a class="icon icon-photo" href="/taichung">台中客運</a></li>
+				<li><a class="icon icon-study" href="/chbus">彰化客運</a></li>
+				<li><a class="icon icon-study" href="/kkchiayi">嘉義國光</a></li>
+				<li><a class="icon icon-wallet" href="/ibus">漢程客運</a></li>
+			</ul>
+		</nav>
+
+		<!-- content push wrapper -->
+		<div class="st-pusher">
+			<div class="st-content"><!-- this is the wrapper for the content -->
+				<div class="st-content-inner"><!-- extra div for emulating position:fixed of the menu -->
+					<div id="st-trigger-effects" class="column">
+						<button data-effect="st-effect-9">MasterBus</button>
+						<div class="container-fluid">
+							<div class="input-group" style="width: 200px;">
+								<input type="date" id="date" name="date" class="form-control" placeholder="日期" aria-label="日期"
+									aria-describedby="basic-addon2">
+							</div>
+							<label for="companySelect">公司:</label>
+							<select class="form-select" id="companySelect" aria-label="Disabled select example">
+								<option selected>MasterBus</option>
+								{% for key in all_keys %}
+								<option value="{{ key }}">{{ key }}</option>
+								{% endfor %}
+							</select>
+							
+							<label for="companySelect">車牌:</label>
+							<select class="form-select" id="plateSelect" aria-label="Disabled select example">
+								<option selected>BusPlate</option>
+							</select>
+		
+							<button type="button" class="btn btn-light" id="plateQueryButton">查詢</button>
+							<label for="companySelect">時間:</label>
+							<select class="form-select" id="hourSelect" aria-label="hour example">
+								<option selected>Hour</option>
+							</select>
+							<button type="button" class="btn btn-light" id="hourQueryButton">查詢</button>
+		
+							<div style="width: 80%; height: 400px; max-width: 1000px ;margin-top: 20px;">
+								<canvas id="lineChart"></canvas>
+							</div>
+							<div style="width: 80%; height: 400px; max-width: 1000px; margin-top: 20px;">
+								<canvas id="thirdLineChart"></canvas>
+							</div>
+							<div style="width: 80%; height: 400px; max-width: 1000px; margin-top: 20px;">
+								<canvas id="newLineChart"></canvas>
+							</div>
+		
+						</div>
+					</div>
+					<!-- Top Navigation -->
+					<!-- <div class="codrops-top clearfix">
+							<a class="codrops-icon codrops-icon-prev" href="http://tympanus.net/Tutorials/3DShadingWithBoxShadows/"><span>Previous Demo</span></a>
+							<span class="right"><a class="codrops-icon codrops-icon-drop" href="http://tympanus.net/codrops/?p=16292"><span>Back to the Codrops Article</span></a></span>
+						</div> -->
+					<!-- <header class="codrops-header"> -->
+						<!-- <h1>Sidebar Transitions <span>Transition effects for off-canvas views</span></h1> -->
+						
+					<!-- </header> -->
+					<!-- <div class="main clearfix">
+						<div id="st-trigger-effects" class="column">
+							<button data-effect="st-effect-9">Scale down pusher</button>
+						</div> -->
+						<div class="info">
+							<!-- <p>If you enjoyed this demo you might also like:</p>
+							<p><a href="http://tympanus.net/Development/HeaderEffects/">On Scroll Header Effects</a></p>
+							<p><a href="http://tympanus.net/Development/PageTransitions/">A Collection of Page Transitions</a></p> -->
+						</div>
+					</div><!-- /main -->
+				</div><!-- /st-content-inner -->
+			</div><!-- /st-content -->
+		</div><!-- /st-pusher -->
+	</div><!-- /st-container -->
+<script src="{{ url_for('static', filename='js/modernizr.custom.js') }}"></script>
+<script src="{{ url_for('static', filename='js/classie.js') }}"></script>
+<script src="{{ url_for('static', filename='js/modernizr.custom.js') }}"></script>
+<script src="{{ url_for('static', filename='js/sidebarEffects.js') }}"></script>
+<script>
+    function sendDate() {
+        let dateValue = $('#date').val();
+        $.post("/submit_date", { date: dateValue }, function(response) {
+            console.log("Selected date:", dateValue);
+        });
+    }
+    $(document).ready(function () {
+        $('#date').change(sendDate);
+        // Variables
+        var rawData = [];
+        var chart;
+        var chartData1 = {
+            labels: [],
+            datasets: [
+                {
+                    label: 'ActDCCur',
+                    data: [],
+                    borderColor: 'rgb(75, 192, 192)',
+                    fill: false,
+                    yAxisID: 'yActDCCur'
+                },
+                {
+                    label: 'ActDCVolt',
+                    data: [],
+                    borderColor: 'rgb(255, 99, 132)',
+                    fill: false,
+                    yAxisID: 'yActDCVolt'
+                }
+            ]
+        };
+        var chartData2 = {
+            labels: [],
+            datasets: [
+                {
+                    label: 'ActDCCur vs ActDCVolt',
+                    data: [],
+                    borderColor: 'rgb(75, 192, 192)',
+                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                    pointRadius: 5,
+                    fill: false
+                },
+                // {
+                //     label: 'ActDCVolt',
+                //     data: [],
+                //     borderColor: 'rgb(255, 99, 132)',
+                //     fill: false
+                // }
+            ]
+        };
+        var chartData3 = {
+            labels: [],
+            datasets: [
+                {
+                    label: 'ActDCCur',
+                    data: [],
+                    borderColor: 'rgb(75, 192, 192)',
+                    fill: false,
+                    yAxisID: 'yActDCCur'
+                },
+                {
+                    label: 'ActDCVolt',
+                    data: [],
+                    borderColor: 'rgb(255, 99, 132)',
+                    fill: false,
+                    yAxisID: 'yActDCVolt'
+                }
+            ]
+        };
+        var chart3;
+
+        function fetchDataByPlate() {
+            var selectedCompany = $("#companySelect").val();
+            var selectedBusPlate = $("#plateSelect").val();
+
+            if (selectedBusPlate) {
+                let url = `/query-plate/${selectedBusPlate}`;
+                fetch(url)
+                    .then(response => response.json())
+                    .then(data => {
+                        rawData = data;
+                        updateChartData();
+                        chart.update();
+                        updateChartData2();
+                        chart2.update();
+                    })
+                    .catch(error => {
+                        console.error('There was an error fetching the data:', error);
+                    });
+            }
+        }
+
+        function fetchDataByHour() {
+            var selectedBusPlate = $("#plateSelect").val();
+            var selectedHour = $("#hourSelect").val();
+
+            if (selectedBusPlate && selectedHour !== "Hour") {
+                let url = `/query-hour/${selectedBusPlate}/${selectedHour}`;
+                fetch(url)
+                    .then(response => response.json())
+                    .then(data => {
+                        rawData = data;  // 您原本的程式碼將資料存放在 rawData
+
+                        // 以下為新加入的程式碼，用於更新 chart3 的資料
+                        updateChartData3(data);
+                        chart3.update();
+                    })
+                    .catch(error => {
+                        console.error('There was an error fetching the data:', error);
+                    });
+            }
+        }
+
+        function updateChartBasedOnSelection() {
+            var selectedCompany = $("#companySelect").val();
+            var selectedBusPlate = $("#plateSelect").val();
+            var selectedHour = $("#hourSelect").val();
+
+            if (selectedBusPlate && selectedHour !== "Hour") {
+                fetchDataAndUpdateChart(selectedCompany, selectedBusPlate);
+            }
+        }
+
+        function updateChartData() {
+            chartData1.labels = rawData.map(item => new Date(item.Time).toLocaleTimeString());
+            chartData1.datasets[0].data = rawData.map(item => item.ActDCCur);
+            chartData1.datasets[1].data = rawData.map(item => item.ActDCVolt);
+        }
+        function updateChartData2() {
+            // Assuming the relationship is between ActDCCur and ActDCVolt
+            chartData2.labels = rawData.map(item => item.ActDCCur.toString());
+            chartData2.datasets[0].data = rawData.map(item => item.ActDCVolt);
+        }
+        function updateChartData3(data) {
+            chartData3.labels = data.map(item => new Date(item.Time).toLocaleTimeString());
+            chartData3.datasets[0].data = data.map(item => item.ActDCCur);
+            chartData3.datasets[1].data = data.map(item => item.ActDCVolt);
+        }
+
+        // jQuery Event Handlers
+        $("#companySelect").change(function () {
+            var selectedCompany = $(this).val();
+            $.get("/get-values/" + selectedCompany, function (data) {
+                var busPlateSelect = $("#plateSelect");
+                busPlateSelect.empty();
+                data.forEach(function (plate) {
+                    busPlateSelect.append(new Option(plate, plate));
+                });
+                busPlateSelect.change();
+            });
+        });
+
+        $("#plateQueryButton").click(fetchDataByPlate);
+        $("#hourQueryButton").click(fetchDataByHour);
+
+        // Initialize Chart.js
+        var ctx1 = $('#lineChart')[0].getContext('2d');
+        chart = new Chart(ctx1, {
+            type: 'line',
+            data: chartData1,
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    'yActDCCur': {
+                        position: 'left',
+                        beginAtZero: true
+                    },
+                    'yActDCVolt': {
+                        type: 'linear',
+                        position: 'right',
+                        beginAtZero: true,
+                        grid: {
+                            drawOnChartArea: false,
+                        }
+                    }
+                }
+            }
+        });
+        var ctx2 = $('#newLineChart')[0].getContext('2d');
+        chart2 = new Chart(ctx2, {
+            type: 'scatter',
+            data: chartData2,
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: {
+                        type: 'linear',
+                        position: 'bottom',
+                        beginAtZero: true
+                    },
+                    y: {
+                        position: 'left', // 指定這是左側的y軸
+                        beginAtZero: true
+                    },
+                    y1: {
+                        type: 'linear',
+                        position: 'right',  // 指定這是右側的y軸
+                        beginAtZero: true,
+                        grid: {
+                            drawOnChartArea: false, // 這將確保只有左邊的y軸有格線
+                        }
+                    }
+                }
+            }
+        });
+        var ctx3 = $('#thirdLineChart')[0].getContext('2d');
+        chart3 = new Chart(ctx3, {
+            type: 'line',
+            data: chartData3,
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    'yActDCCur': {
+                        position: 'left',
+                        beginAtZero: true
+                    },
+                    'yActDCVolt': {
+                        type: 'linear',
+                        position: 'right',
+                        beginAtZero: true,
+                        grid: {
+                            drawOnChartArea: false,  // This will ensure that only the left y-axis has grid lines
+                        }
+                    }
+                }
+            }
+        });
+
+        $("#plateSelect").change(function () {
+            var selectedBusPlate = $(this).val();
+            if (selectedBusPlate) {
+                $.get(`/get-hours/${selectedBusPlate}`, function (data) {
+                    $("#hourSelect").empty().append('<option selected>Hour</option>');
+                    data.forEach(function (hour) {
+                        $("#hourSelect").append(`<option value="${hour}">${hour}</option>`);
+                    });
+                });
+            }
+        });
+
+        // $("select[aria-label='Disabled select example']").change(function () {
+        //     var selectedBusPlate = $(this).val();
+        //     $.get(`/get-hours/${selectedBusPlate}`, function (data) {
+        //         $("#hourSelect").empty().append('<option selected>Hour</option>');
+        //         data.forEach(function (hour) {
+        //             $("#hourSelect").append(`<option value="${hour}">${hour}</option>`);
+        //         });
+        //     });
+        // });
+    });
+
+</script>
+
+</body>
+</html>

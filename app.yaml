@@ -1,0 +1,5 @@
+service: datanalyse
+runtime: python39
+instance_class: F4
+# entrypoint: python app.py
+entrypoint: gunicorn -b :$PORT main:app
