@@ -1,5 +1,5 @@
-service: datanalyse
+service: catni
 runtime: python39
-instance_class: F4
+instance_class: F2
 # entrypoint: python app.py
 entrypoint: gunicorn -b :$PORT main:app
