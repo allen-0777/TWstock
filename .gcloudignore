@@ -12,7 +12,9 @@
 # below:
 .git
 .gitignore
-
+.key
+test_api.py
+test.py
 # Python pycache:
 __pycache__/
 # Ignored by the build system

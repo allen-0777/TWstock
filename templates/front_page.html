@@ -21,10 +21,10 @@
 		<nav class="st-menu st-effect-9" id="menu-9">
 			<h2 class="icon icon-cat">大戶的貓膩</h2>
 			<ul>
+				<li><a class="icon icon-study" href="/">每日盤後</a></li>
 				<li><a class="icon icon-study" href="/for_ib_common">外資投信同買</a></li>
 				<li><a class="icon icon-study" href="/for_buy_sell">外資買賣超</a></li>
 				<li><a class="icon icon-study" href="/ib_buy_sell">投信買賣超</a></li>
-				<li><a class="icon icon-location" href="/three_data">每日盤後</a></li>
 			</ul>
 		</nav>
 
@@ -34,29 +34,12 @@
 				<div class="st-content-inner"><!-- extra div for emulating position:fixed of the menu -->
 					<div id="st-trigger-effects" class="column">
 						<button data-effect="st-effect-9">貓貓側邊欄</button>
+						<div>
+							<input type="text" id="stockInput" placeholder="輸入四位數字">
+							<button onclick="redirectToStockPage()">提交</button>
+						</div>
 						<!-- <input type="date" id="date" name="date" class="form-control" placeholder="日期"
 							value="2023-09-02"> -->
-						<div class="card-body">
-							<div class="table-responsive">
-								<table class="table table-bordered" id="datatable" width="100%" cellspacing="0">
-									<caption>持股清單</caption>
-									<thead>
-										<tr>
-											<th>商品</th>
-											<th>現價</th>
-										</tr>
-									</thead>
-									<tbody>
-										<!-- {{ table|safe}} -->
-									</tbody>
-								</table>
-							</div>
-						</div>
-					</div>
-					<div id="st-trigger-effects" class="column">
-						<!-- <button data-effect="st-effect-9">貓貓側邊欄</button> -->
-						<!-- <input type="date" id="date" name="date" class="form-control" placeholder="日期"
-									value="2023-09-02"> -->
 						<div class="card-body">
 							<div class="table-responsive">
 								<table class="table table-bordered" id="datatable2" width="100%" cellspacing="0">
@@ -76,8 +59,6 @@
 					</div>
 					<div id="st-trigger-effects" class="column">
 						<!-- <button data-effect="st-effect-9">貓貓側邊欄</button> -->
-						<!-- <input type="date" id="date" name="date" class="form-control" placeholder="日期"
-								value="2023-09-02"> -->
 						<div class="card-body">
 							<div class="table-responsive">
 								<table class="table table-bordered" id="datatable3" width="100%" cellspacing="0">
@@ -87,6 +68,26 @@
 											<th>單位名稱</th>
 											<th>多空淨額未平倉口數</th>
 											<th>多空淨額未平倉契約金額</th>
+										</tr>
+									</thead>
+									<tbody>
+										<!-- {{ table|safe}} -->
+									</tbody>
+								</table>
+							</div>
+						</div>
+					</div>
+					<div id="st-trigger-effects" class="column">
+						<!-- <button data-effect="st-effect-9">貓貓側邊欄</button> -->
+						<div class="card-body">
+							<div class="table-responsive">
+								<table class="table table-bordered" id="datatable4" width="100%" cellspacing="0">
+									<caption>台幣匯率</caption>
+									<thead>
+										<tr>
+											<th>日期</th>
+											<th>買進價</th>
+											<th>賣出價</th>
 										</tr>
 									</thead>
 									<tbody>
@@ -128,22 +129,20 @@
 	<script type="text/javascript" charset="utf8"
 		src="https://cdn.datatables.net/1.10.22/js/jquery.dataTables.js"></script>
 	<script>
+		function redirectToStockPage() {
+			var stockNumber = document.getElementById('stockInput').value;
+			var baseUrl = "https://norway.twsthr.info/StockHolders.aspx?stock=";
+			var fullUrl = baseUrl + stockNumber;
+			window.location.href = fullUrl;
+		}
+
 		$(document).ready(function () {
 			// 初始化第一個 DataTable
-			var jsonData = {{ table| tojson | safe
-		}};
-		$('#datatable').DataTable({
-			data: JSON.parse(jsonData),
-			columns: [
-				{ data: 'stock' },
-				{ data: 'price' }
-				// 其他欄位...
-			],
-			pageLength: 10
-		});
 
-		// 初始化第二個 DataTable
-		var jsonData2 = {{ three_table| tojson | safe }};
+
+			// 初始化第二個 DataTable
+			var jsonData2 = {{ three_table| tojson | safe
+		}};
 		$('#datatable2').DataTable({
 			data: JSON.parse(jsonData2),
 			columns: [
@@ -163,6 +162,19 @@
 				{ data: '多空淨額未平倉契約金額' }
 				// 其他欄位...
 			],
+			pageLength: 10
+		});
+		// 初始化第三個 DataTable
+		var jsonData4 = {{ ex_rate_table| tojson | safe }};
+		$('#datatable4').DataTable({
+			data: JSON.parse(jsonData4),
+			columns: [
+				{ data: 'date' },
+				{ data: 'buy_rate' },
+				{ data: 'sell_rate' }
+				// 其他欄位...
+			],
+			order: [[0, 'desc']], // 預設對第四個欄位進行降冪排序
 			pageLength: 10
 		});
 });

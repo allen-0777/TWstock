@@ -6,7 +6,14 @@ from datetime import date, datetime, timedelta
 from io import StringIO
 import time
 from bs4 import BeautifulSoup
+from flask import Flask
+# from flask_caching import Cache
 
+app = Flask(__name__)
+# app.config['CACHE_TYPE'] = 'simple'  
+# app.config['TEMPLATES_AUTO_RELOAD'] = True
+
+# cache = Cache(app)
 
 # def data():
 #     # 打算要取得的股票代碼
@@ -35,7 +42,7 @@ from bs4 import BeautifulSoup
 #     df.columns = ['股票代號','公司簡稱','成交價','成交量','累積成交量','開盤價','最高價','最低價','昨收價', '資料更新時間']
 #     return df
 
-# @st.cache_data
+# @cache.cached(timeout=3600)
 def get_data(max_attempts=5):
     # 獲取今天的日期
     now = datetime.now()
@@ -55,13 +62,17 @@ def get_data(max_attempts=5):
             break  # 成功获取数据后跳出循环
     return df,now.strftime("%Y-%m-%d")
 
-# @st.cache_data
+# @cache.cached(timeout=3600)
 def three_data():
     # 發送GET請求到URL並獲取JSON回應
     response = requests.get("https://www.twse.com.tw/rwd/zh/fund/BFI82U?response=json&_=1687055087413")
     time.sleep(5)
     # 將JSON回應轉換成Python字典
-    data = response.json()
+    if response.status_code == 200:
+        data = response.json()
+    else:
+        print("Failed to fetch data. Status code:", response.status_code)
+    # 處理錯誤情況
 
     # 從字典中取出"data"鍵的值，該值是一個二維列表
     data_list = data["data"]
@@ -84,7 +95,7 @@ def three_data():
     # print(df)
     return new_df, data_date
 
-# @st.cache_data
+# @cache.cached(timeout=3600)
 def turnover():
     now = datetime.now()
     datestr = now.strftime("%Y%m%d")
@@ -110,19 +121,40 @@ def turnover():
 
     return new_df
 
-def for_buy_sell():
-    df, data_date = get_data()
-    df_for = df[['證券代號','證券名稱','外陸資買賣超股數(不含外資自營商)']].copy()
-    df_for['外陸資買賣超股數(不含外資自營商)'] = df_for['外陸資買賣超股數(不含外資自營商)'].str.replace(',', '')
-    df_for['外陸資買賣超股數(不含外資自營商)'] = pd.to_numeric(df_for['外陸資買賣超股數(不含外資自營商)'], errors='coerce')
-    df_for.rename(columns={'外陸資買賣超股數(不含外資自營商)': '外資買賣超股數'}, inplace=True)
-    df_for_all = df_for[df_for['外資買賣超股數'].notna() & (df_for['外資買賣超股數'] != 0)]
-    df_for_all = df_for_all.sort_values('外資買賣超股數', ascending=False)
-    df_for_all2 = df_for_all.sort_values('外資買賣超股數', ascending=True)
-    df_buy_top50 = df_for_all.head(50)
-    df_sell_top50 = df_for_all2.head(50)
-    return df_for_all, df_buy_top50, df_sell_top50, data_date
+# def for_buy_sell():
+#     df, data_date = get_data()
+#     df_for = df[['證券代號','證券名稱','外陸資買賣超股數(不含外資自營商)']].copy()
+#     df_for['外陸資買賣超股數(不含外資自營商)'] = df_for['外陸資買賣超股數(不含外資自營商)'].str.replace(',', '')
+#     df_for['外陸資買賣超股數(不含外資自營商)'] = pd.to_numeric(df_for['外陸資買賣超股數(不含外資自營商)'], errors='coerce')
+#     df_for.rename(columns={'外陸資買賣超股數(不含外資自營商)': '外資買賣超股數'}, inplace=True)
+#     df_for_all = df_for[df_for['外資買賣超股數'].notna() & (df_for['外資買賣超股數'] != 0)]
+#     df_for_all = df_for_all.sort_values('外資買賣超股數', ascending=False)
+#     df_for_all2 = df_for_all.sort_values('外資買賣超股數', ascending=True)
+#     df_buy_top50 = df_for_all.head(50)
+#     df_sell_top50 = df_for_all2.head(50)
+#     return df_for_all, df_buy_top50, df_sell_top50, data_date
 
+# @cache.cached(timeout=3600)
+def for_buy_sell():
+    try:
+        df, data_date = get_data()
+        if df is not None and not df.empty:
+            df_for = df[['證券代號', '證券名稱', '外陸資買賣超股數(不含外資自營商)']].copy()
+            df_for['外陸資買賣超股數(不含外資自營商)'] = df_for['外陸資買賣超股數(不含外資自營商)'].str.replace(',', '')
+            df_for['外陸資買賣超股數(不含外資自營商)'] = pd.to_numeric(df_for['外陸資買賣超股數(不含外資自營商)'], errors='coerce')
+            df_for.rename(columns={'外陸資買賣超股數(不含外資自營商)': '外資買賣超股數'}, inplace=True)
+            df_for_all = df_for[df_for['外資買賣超股數'].notna() & (df_for['外資買賣超股數'] != 0)]
+            df_for_all = df_for_all.sort_values('外資買賣超股數', ascending=False)
+            df_buy_top50 = df_for_all.head(50)
+            df_sell_top50 = df_for_all.tail(50)  # 更改为 tail 获取卖超前50
+            return df_for_all, df_buy_top50, df_sell_top50, data_date
+        else:
+            return None, None, None, None  # 在数据无效时返回None
+    except Exception as e:
+        print(f"An error occurred: {e}")
+        return None, None, None, None  # 在出现异常时返回None
+
+# @cache.cached(timeout=3600)
 def ib_buy_sell():
     df, data_date = get_data()
     df_ib = df[['證券代號','證券名稱','投信買賣超股數']].copy()
@@ -135,6 +167,7 @@ def ib_buy_sell():
     df_sell_top50 = df_ib_all2.head(50)
     return df_ib_all, df_buy_top50, df_sell_top50, data_date
 
+# @cache.cached(timeout=3600)
 def for_ib_common():
     df_for_all, _, _, data_date = for_buy_sell()
     df_ib_all, _, _, data_date= ib_buy_sell()
@@ -145,6 +178,7 @@ def for_ib_common():
     df_com_buy = df_com_buy.sort_values(by='投信買賣超股數', ascending=False)
     return df_com_buy, data_date
 
+# @cache.cached(timeout=3600)
 def exchange_rate():
     # 先到牌告匯率首頁，爬取所有貨幣的種類
     url = "https://rate.bot.com.tw/xrt?Lang=zh-TW"
@@ -168,7 +202,6 @@ def exchange_rate():
 
     #
     # 到貨幣歷史匯率網頁，選則該貨幣的「歷史區間」，送出查詢後，觀察其網址變化情形，再試著抓取其歷史匯率資料
-    #
     # 用「quote/年-月」去取代網址內容，就可以連到該貨幣的歷史資料
     quote_history_url = history_rate_link.replace("history", "quote/2019-08")
     resp = requests.get(quote_history_url)
@@ -176,9 +209,7 @@ def exchange_rate():
     history = BeautifulSoup(resp.text, "lxml")
     history_table = history.find(name='table', attrs={'title':'歷史本行營業時間牌告匯率'}).find(name='tbody').find_all(name='tr')
 
-    #
     # 擷取到歷史匯率資料後，把資料彙整起來並畫出趨勢圖
-    #
     date_history = list()
     history_buy = list()
     history_sell = list()
@@ -201,12 +232,13 @@ def exchange_rate():
                                         'buy_rate':history_buy,
                                         'sell_rate':history_sell})
 
-    History_ExchangeRate = History_ExchangeRate.set_index('date')  # 指定日期欄位為datafram的index
+    History_ExchangeRate = History_ExchangeRate.set_index('date')  # 指定日期欄位為dataframe的index
     History_ExchangeRate = History_ExchangeRate.sort_index(ascending=True)
 
     # print(History_ExchangeRate)
     return History_ExchangeRate
 
+# @cache.cached(timeout=3600)
 def futures():
     url = 'https://www.taifex.com.tw/cht/3/futContractsDate'
 
@@ -238,8 +270,8 @@ def futures():
 
     new_index = ["自營商", "投信", "外資"]
     df.index = new_index
-    return df.reset_index().to_json(orient='records')
-    # return df
+    # return df.reset_index().to_json(orient='records')
+    return df
 
 def format_number(num_str):
     num_str = num_str.replace(",", "")

@@ -5,21 +5,34 @@ import json
 import os
 import time
 import pandas as pd
+# from flask_caching import Cache
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = '123'
+# app.config['CACHE_TYPE'] = 'simple'  # 選擇緩存類型，這裡使用簡單的記憶體緩存
+# cache = Cache(app)
 
 @app.route('/')
 def home():
-    df = pd.read_csv('holding_list.csv',encoding='utf-8')
-    url = "https://norway.twsthr.info/StockHolders.aspx?stock="
-    df['stock'] = df['stock'].apply(lambda x: f'<a href="{url}{x}">{x}</a>')
-    table = df.to_json(orient='records')
+
     df_three, data_date = three_data()
-    three_table = df_three.to_json(orient='records')
+    if df_three is not None:
+        three_table = df_three.to_json(orient='records')
+    else:
+        three_table = None  # 或者可以设置为默认值
+
+    # 如果你想处理 df_futures 同样需要检查是否为 None
     df_futures = futures()
-    futures_table = df_futures
-    return render_template('front_page.html', table=table,three_table=three_table,futures_table=futures_table)
+    df_futures_reset = df_futures.reset_index()
+    if isinstance(df_futures, pd.DataFrame):
+        futures_table = df_futures_reset.to_json(orient='records')
+    else:
+        futures_table = None
+
+    ex_rate = exchange_rate()
+    ex_rate_reset = ex_rate.reset_index()
+    ex_rate_table = ex_rate_reset.to_json(orient='records')
+    
+    return render_template('front_page.html', three_table=three_table, futures_table=futures_table,ex_rate_table=ex_rate_table)
 
 @app.route('/for_ib_common')
 def api_for_ib_common():
