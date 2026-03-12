@@ -1,3 +1,5 @@
 .key
 test_api.py
 test.py
+__pycache__/
+*.pyc
