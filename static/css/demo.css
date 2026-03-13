@@ -1,4 +1,4 @@
-@import url(http://fonts.googleapis.com/css?family=Lato:300,400,700);
+@import url(https://fonts.googleapis.com/css?family=Lato:300,400,700);
 @font-face {
 	font-weight: normal;
 	font-style: normal;
@@ -209,4 +209,132 @@ button:hover {
 		display: none;
 	}
 
+}
+
+/* ============================================================
+   UI/UX Enhancements
+   ============================================================ */
+
+/* Page loading overlay */
+.page-loading {
+	position: fixed;
+	inset: 0;
+	background: rgba(243, 239, 224, 0.94);
+	z-index: 10000;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	gap: 14px;
+	transition: opacity 0.35s ease;
+}
+
+.page-loading.fade-out {
+	opacity: 0;
+	pointer-events: none;
+}
+
+.spinner {
+	width: 42px;
+	height: 42px;
+	border: 4px solid rgba(72, 167, 112, 0.2);
+	border-top-color: #48a770;
+	border-radius: 50%;
+	animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin {
+	to { transform: rotate(360deg); }
+}
+
+.spinner-text {
+	color: #48a770;
+	font-size: 0.85em;
+	letter-spacing: 0.06em;
+	font-weight: 400;
+}
+
+/* Active navigation item */
+.st-menu ul li a.nav-active {
+	background: rgba(255, 255, 255, 0.22);
+	border-left: 3px solid rgba(255, 255, 255, 0.75);
+	padding-left: calc(1em - 3px);
+	font-weight: 700;
+}
+
+/* Sidebar site-title as home link */
+.st-menu .site-title {
+	display: block;
+	color: #fff;
+	text-decoration: none;
+	transition: opacity 0.2s;
+}
+
+.st-menu .site-title:hover,
+.st-menu .site-title:focus {
+	opacity: 0.8;
+	color: #fff;
+}
+
+/* Financial number colors (Taiwan convention: 紅漲綠跌) */
+.num-up   { color: #c0392b; font-weight: 500; }
+.num-down { color: #27ae60; font-weight: 500; }
+.num-flat { color: #888; }
+
+/* Data date badge */
+.data-date {
+	display: inline-block;
+	background: rgba(72, 167, 112, 0.1);
+	color: #2c774b;
+	border: 1px solid rgba(72, 167, 112, 0.25);
+	padding: 2px 9px;
+	border-radius: 10px;
+	font-size: 0.75em;
+	margin: 0 4px 10px;
+	letter-spacing: 0.03em;
+}
+
+/* Card shadow */
+.card-body {
+	background: #fff;
+	border-radius: 6px;
+	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.07);
+	padding: 16px;
+	margin: 6px 0 18px;
+}
+
+/* Menu toggle button */
+button[data-effect] {
+	display: inline-flex;
+	align-items: center;
+	gap: 7px;
+	border-radius: 4px;
+	font-size: 0.9em;
+	padding: 7px 16px;
+	margin-bottom: 14px;
+	letter-spacing: 0.02em;
+	text-transform: none;
+	transition: background 0.18s;
+}
+
+button[data-effect]::before {
+	content: '☰';
+	font-size: 1.05em;
+}
+
+/* Stock search input */
+#stockInput {
+	padding: 6px 10px;
+	border: 1px solid rgba(72, 167, 112, 0.4);
+	border-radius: 4px;
+	font-size: 0.9em;
+	font-family: inherit;
+	outline: none;
+	width: 130px;
+	margin-right: 4px;
+}
+
+#stockInput:focus {
+	border-color: #48a770;
+	box-shadow: 0 0 0 2px rgba(72, 167, 112, 0.15);
 }

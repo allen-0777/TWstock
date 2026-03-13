@@ -31,6 +31,7 @@ def home():
         three_table=three_table,
         futures_table=futures_table,
         ex_rate_table=ex_rate_table,
+        data_date=data_date,
     )
 
 
@@ -39,7 +40,11 @@ def api_for_ib_common():
     df_common, data_date = for_ib_common()
     if df_common is None:
         abort(503, description="資料暫時無法取得，請稍後再試")
-    return render_template('for_ib_common.html', common_table=df_common.to_json(orient='records'))
+    return render_template(
+        'for_ib_common.html',
+        common_table=df_common.to_json(orient='records'),
+        data_date=data_date,
+    )
 
 
 @app.route('/for_buy_sell')
@@ -51,7 +56,7 @@ def api_for_buy_sell():
         'for_buy_sell.html',
         for_buy_table=df_buy_top50.to_json(orient='records'),
         for_sell_table=df_sell_top50.to_json(orient='records'),
-        date=data_date,
+        data_date=data_date,
     )
 
 
@@ -64,7 +69,7 @@ def api_ib_buy_sell():
         'ib_buy_sell.html',
         ib_buy_table=df_buy_top50.to_json(orient='records'),
         ib_sell_table=df_sell_top50.to_json(orient='records'),
-        date=data_date,
+        data_date=data_date,
     )
 
 

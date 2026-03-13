@@ -1,10 +1,12 @@
 {% extends "base.html" %}
+{% block title %}外資買賣超 — 大戶的貓膩{% endblock %}
 
 {% block content %}
 <div id="st-trigger-effects" class="column">
 	<button data-effect="st-effect-9">貓貓側邊欄</button>
 	<div class="card-body">
 		<div class="table-responsive">
+			{% if data_date %}<span class="data-date">📅 {{ data_date }}</span>{% endif %}
 			<table class="table table-bordered" id="datatable" width="100%" cellspacing="0">
 				<caption>外資買超前50</caption>
 				<thead>
@@ -22,6 +24,7 @@
 <div id="st-trigger-effects" class="column">
 	<div class="card-body">
 		<div class="table-responsive">
+			{% if data_date %}<span class="data-date">📅 {{ data_date }}</span>{% endif %}
 			<table class="table table-bordered" id="datatable2" width="100%" cellspacing="0">
 				<caption>外資賣超前50</caption>
 				<thead>
@@ -47,7 +50,7 @@
 			columns: [
 				{ data: '證券代號' },
 				{ data: '證券名稱' },
-				{ data: '外資買賣超股數' }
+				{ data: '外資買賣超股數', render: numRender }
 			],
 			order: [[2, 'desc']],
 			pageLength: 50
@@ -59,11 +62,13 @@
 			columns: [
 				{ data: '證券代號' },
 				{ data: '證券名稱' },
-				{ data: '外資買賣超股數' }
+				{ data: '外資買賣超股數', render: numRender }
 			],
 			order: [[2, 'asc']],
 			pageLength: 50
 		});
+
+		hideLoader();
 	});
 </script>
 {% endblock %}
