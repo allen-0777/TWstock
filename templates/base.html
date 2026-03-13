@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="zh-TW" class="no-js">
+<head>
+	<meta charset="UTF-8" />
+	<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>大戶的貓膩</title>
+	<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.22/css/jquery.dataTables.css">
+	<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/normalize.css') }}" />
+	<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/demo.css') }}" />
+	<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/icons.css') }}" />
+	<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/component.css') }}" />
+</head>
+<body>
+	<div id="st-container" class="st-container">
+		<nav class="st-menu st-effect-9" id="menu-9">
+			<h2 class="icon icon-cat">大戶的貓膩</h2>
+			<ul>
+				<li><a class="icon icon-study" href="/">每日盤後</a></li>
+				<li><a class="icon icon-study" href="/for_ib_common">外資投信同買</a></li>
+				<li><a class="icon icon-study" href="/for_buy_sell">外資買賣超</a></li>
+				<li><a class="icon icon-study" href="/ib_buy_sell">投信買賣超</a></li>
+			</ul>
+		</nav>
+
+		<div class="st-pusher">
+			<div class="st-content">
+				<div class="st-content-inner">
+					{% block content %}{% endblock %}
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<script src="{{ url_for('static', filename='js/modernizr.custom.js') }}"></script>
+	<script src="{{ url_for('static', filename='js/classie.js') }}"></script>
+	<script src="{{ url_for('static', filename='js/sidebarEffects.js') }}"></script>
+	<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+	<script type="text/javascript" charset="utf8"
+		src="https://cdn.datatables.net/1.10.22/js/jquery.dataTables.js"></script>
+	{% block scripts %}{% endblock %}
+</body>
+</html>
